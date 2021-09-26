@@ -1,4 +1,4 @@
-def read_instance_text(f):
+def read_instance(f):
     print(f)
     file = open(f)
     width = int(file.readline())
@@ -12,7 +12,7 @@ def read_instance_text(f):
         DY.append(int(split_piece[1]))
     return width, n_pieces, DX, DY
 
-def write_dzn(width, n_pieces, DX, DY, out_path="./file.dzn"):
+def write_instance(width, n_pieces, DX, DY, out_path="./file.dzn"):
     file = open(out_path, mode="w")
     file.write(f"width = {width};\n")
     file.write(f"n = {n_pieces};\n")
