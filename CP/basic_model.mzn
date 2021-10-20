@@ -1,119 +1,81 @@
-% *** COSE DA SCRIVERE ANCHE NEL REPORT ***
-include "disjunctive.mzn";
+%include "disjunctive.mzn";
 include "diffn.mzn";
 include "cumulative.mzn";
 
-%La prima cosa da fare è definire in che modo modellare le istanze fornite.
-%Dalla traccia sappiamo che la seguente istanza:
-
-%8
-%4
-%3 3
-%3 5
-%5 3
-%5 5
-
-%significa che il "contenitore" è un rettangolo con larghezza 8,
-%abbiamo 4 figure in totale (tra quadrati e rettangoli),
-%e le misure delle figure sono larghezza e altezza.
-
-%Una possibile soluzione è la seguente:
-%dichiariamo una variabile width che rappresenta la larghezza del contenitore e
-%una variabile n (int) per indicare il numero di circuits
-%due array di interi DX e DY con dimensione n che contengono le dimensioni in larghezza e altezza degli n circuits.
-
-%Quindi l'istanza di prima verrebbe riscritta in un file dzn come segue:
-
-%width = 8;
-%n = 4;
-%DX = [3, 3, 5, 5];
-%DY = [3, 5, 3, 5];
-
-%Deciso come salvare le istanze, possiamo iniziare col problema vero e proprio.
-%Definiamo le variabili che prenderanno i valori dal file dzn come segue:
-
+%plate width
 int: width;
-%int: height; -> va calcolato facendo la somma di DY (significa che mettiamo
-%tutti i circuit in colonna e otteniamo l’altezza massima non ottimizzata)
+set of int: FEASIBLE_WIDTH = 1..width;
+
+%plate maximum height
+int: height_max;
+set of int: FEASIBLE_HEIGHT = 1..height_max;
+
+%circuits
 int: n;
-array[1..n] of int: DX;
-array[1..n] of int: DY;
+set of int: N_CIRCUITS = 1..n;
 
-%width = 8;
-%n = 4;
-%DX = [3, 3, 5, 5];
-%DY = [3, 5, 3, 5];
+%width of circuits
+array[N_CIRCUITS] of FEASIBLE_WIDTH: DX;
 
-int: max_height = sum([DY[i] | i in 1..n]);
+%height of circuits
+array[N_CIRCUITS] of FEASIBLE_HEIGHT: DY;
 
-%Dopo le istanze, dobbiamo aggiungere altri due array X e Y che fanno riferimento
-%alle coordinate di ciascun circuit (le coordinate dell'angolo in basso a sinistra
-% di ciascun circuit -> per capire meglio guarda "Solution Format" sul
-%pdf di Zeynep).
+%array to specify whether a circuit is rotated or not
+array[N_CIRCUITS] of var bool: is_rotated;
 
-array[1..n] of var 0..(width - min(DX)): X;
-array[1..n] of var 0..(max_height - min(DY)): Y;
+%horizontal dimension of circuits
+array[N_CIRCUITS] of var FEASIBLE_WIDTH: DX_R = [if is_rotated[i] then DY[i] else DX[i] endif | i in N_CIRCUITS];
 
-%Il -min(DX) ( -min(DY) ) nell'estremo superiore del range di valori
-% di X (Y) serve per restringere il range di valori (quindi ottimizzare)
-%che le coordinate possono assumere -> usiamo il minimo dell'array DX (DY)
-%perché X (Y) può avere come valore massimo la larghezza (altezza) meno
-%la larghezza (altezza) del circuit con larghezza (altezza) minore.
+%vertical dimension of the circuits
+array[N_CIRCUITS] of var FEASIBLE_HEIGHT: DY_R = [if is_rotated[i] then DX[i] else DY[i] endif | i in N_CIRCUITS];
 
-%definiamo la nostra objective function che corrisponde all’altezza del plate
-var int: height = max([Y[i] + DY[i] | i in 1..n]);
+%circuits area
+%array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
 
-%Ora aggiungiamo un constraint basico riguardante la sovrapposizione
-%dei circuit:
-%DUBBIO: nella lezione 2 dice di applicare un constraint noOverlap,
-%ma non credo esista e, anche se esistesse, suppongo sia solo per array e non matrici
+%circuit with the maximum height
+%int: index_max_height = arg_max(DY);
 
-%il seguente constraint è una versione rivisitata del constraint noOverlap
-%dello scheduling problem in Lesson 2:
+%variable definition
 
-%constraint forall(i in 1..n) (
-%      %disjunctive([X[i] + DX[i]], [X[j] + DX[j] | j in 1..n where i < j])
-%      disjunctive(X,DX)
-%);
+%horizontal coordinate of circuits
+array[N_CIRCUITS] of var 0..width-min(DX): x;
 
-%constraint disjunctive(X,DX);
-%constraint disjunctive(Y,DY);
+%vertical coordinate of circuits
+array[N_CIRCUITS] of var 0..height_max-min(DY): y;
 
-constraint diffn(X, Y, DX, DY);
+%height of the plate to minimize
+var FEASIBLE_HEIGHT: height;
+height = max([y[i] + DY[i] | i in N_CIRCUITS]);
 
-%constraint forall(i, j in 1..n where i < j) (
-%     X[i] + DX[i] <= X[j]
-%  \/ X[j] + DX[j] <= X[i]
-%  \/ Y[i] + DY[i] <= Y[j]
-%  \/ Y[j] + DY[j] <= Y[i]
-%);
+%constraints
 
-%Ora applichiamo un constraint per rispettare i limiti del contenitore -> abbiamo cambiato tipologia di constraint
-%per utilizzare un global constraint sfruttando il concetto di linea verticale e orizzontale scritto nella traccia (cumulative constraint)
-%Link da guardare anche per le cose del report + spiegazione fatta decentemente sul constraint:
-%https://sofdem.github.io/gccat/gccat/Cdiffn.html
+%implied constraints
 
-constraint cumulative(Y, DY, X, width);
-constraint cumulative(X, DX, Y, max_height);
+%maximum width
+constraint max([x[i] + DX_R[i] | i in N_CIRCUITS]) <= width;
 
-%Constraint sui boundaries che non utilizza un global constraint:
-%constraint forall(i in 1..n) (
-%  X[i] + DX[i] <= width /\ Y[i] + DY[i] <= max_height
-%);
+% maximum height (it could be eliminated for construction of height_max if we do not take into account rotation)
+constraint max([y[i] + DY_R[i] | i in N_CIRCUITS]) <= height_max;
 
-%solve satisfy;
+% relationships among circuits
+constraint diffn(x, y, DX_R, DY_R);
+
+% a circuit cannot be rotated whether its height is greater than width
+constraint forall(i in N_CIRCUITS)(DY[i] > width -> is_rotated[i]==false);
+
+% considering each circuit as an activity whose duration is the height and amount of resources is equal to its width
+constraint cumulative(y, DY_R, DX_R, width);
+constraint cumulative(x, DX_R, DY_R, height_max);
+
+
+
 solve minimize height;
 
 %output ["\(width) \(height)\n\(n)\n"] ++ ["\(DX[i]) \(DY[i])\t\(X[i]) \(Y[i])\n" | i in 1..n];
 
 
-output ["\(width) \(max_height)\n\(n)\n"]
+output ["\(width) \(height_max)\n\(n)\n"]
        ++ ["Plate height: \(height)\n"]
-       ++ ["\(DX[i]) \(DY[i]) \(X[i]) \(Y[i])"
+       ++ ["\(DX_R[i]) \(DY_R[i]) \(x[i]) \(y[i])"
        ++ "\n"
       | i in 1..n];
-
-
-
-
-
