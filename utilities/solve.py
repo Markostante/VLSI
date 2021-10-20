@@ -9,7 +9,7 @@ def solve_instance(cores, model, in_file, out_dir):
     # command to run the model
     command = f'minizinc --solver Gecode -p {cores} -t 300000 {model} {in_file}'
 
-    instance_name = in_file.split('\\')[-1] if os.name == 'nt' else in_file.split('/')[-1]
+    instance_name = in_file.split('/')[-1] if os.name == 'nt' else in_file.split('/')[-1]
     instance_name = instance_name[:len(instance_name) - 4]
     out_file = os.path.join(out_dir, instance_name + '-out.txt')
     with open(out_file, 'w') as f:
@@ -25,9 +25,9 @@ def solve_instance(cores, model, in_file, out_dir):
 
 def main():
     cores = 1
-    model = "C:\\Users\\Ale\\PycharmProjects\\VLSI\\VLSI\\CP\\symmetry_model.mzn"
-    in_file = "C:\\Users\\Ale\\PycharmProjects\\VLSI\\VLSI\\CP\\in\\ins-6.dzn"
-    out_dir = "C:\\Users\\Ale\\PycharmProjects\\VLSI\\VLSI\\CP\\out"
+    model = "/Users/Marco/Downloads/VLSI-main-2/CP/basic_model.mzn"
+    in_file = "/Users/Marco/Downloads/VLSI-main-2/CP/in/ins-16.dzn"
+    out_dir = "/Users/Marco/Downloads/VLSI-main-2/CP/out"
 
     solve_instance(cores, model, in_file, out_dir)
 
