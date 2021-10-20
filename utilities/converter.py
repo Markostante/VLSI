@@ -1,7 +1,7 @@
 import sys
 import os
 import re
-from utilities.instances_to_dzn import write_instance, read_instance
+from instances_to_dzn import write_instance, read_instance
 
 if __name__ == "__main__":
     in_path = "./instances/"

@@ -10,6 +10,7 @@ int: n;
 array[1..n] of int: DX;
 array[1..n] of int: DY;
 
+max_height = sum([DY[i] | i in 1..n]);
 % Primal problem: the i-th element of each array contains one (X/Y) coordinate of the bottom-left corner of the i-th piece of paper
 array[1..n] of var 0..(width - min(DX)): X;
 array[1..n] of var 0..(max_height - min(DY)): Y;

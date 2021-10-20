@@ -39,10 +39,10 @@ int: n;
 array[1..n] of int: DX;
 array[1..n] of int: DY;
 
-width = 8;
-n = 4;
-DX = [3, 3, 5, 5];
-DY = [3, 5, 3, 5];
+%width = 8;
+%n = 4;
+%DX = [3, 3, 5, 5];
+%DY = [3, 5, 3, 5];
 
 int: max_height = sum([DY[i] | i in 1..n]);
 
