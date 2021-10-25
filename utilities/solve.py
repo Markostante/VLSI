@@ -18,17 +18,18 @@ def solve_instance(cores, model, in_file, out_dir):
         subprocess.run(command.split())
         elapsed_time = time() - start_time
         print(f'{elapsed_time * 1000:.1f} ms')
-        if (elapsed_time * 1000) < 300000:
-            subprocess.run(command.split(), stdout=f)
-            f.write('{}'.format(elapsed_time))
+        #if (elapsed_time * 1000) < 300000:
+        subprocess.run(command.split(), stdout=f)
+        f.write('{}'.format(elapsed_time))
 
 
 def main():
     cores = 1
-    model = "/Users/Marco/Downloads/VLSI-main-2/CP/basic_model.mzn"
-    in_file = "/Users/Marco/Downloads/VLSI-main-2/CP/in/ins-16.dzn"
-    out_dir = "/Users/Marco/Downloads/VLSI-main-2/CP/out"
-
+    in_dir = "/Users/Marco/Downloads/VLSI-main-2/CP/in"
+    #for in_file in glob(os.path.join(in_dir, '*.dzn')):
+    model = "/Users/Marco/Downloads/VLSI-main-2/CP/basic_model_var.mzn"
+    in_file = "/Users/Marco/Downloads/VLSI-main-2/CP/in/ins-12.dzn"
+    out_dir = "/Users/Marco/Downloads/VLSI-main-2/CP/out/basic"
     solve_instance(cores, model, in_file, out_dir)
 
 
