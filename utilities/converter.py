@@ -4,8 +4,8 @@ import re
 from instances_to_dzn import write_instance, read_instance
 
 if __name__ == "__main__":
-    in_path = "./instances/"
-    out_path = "./in/"
+    in_path = "C:\\Users\\Ale\\PycharmProjects\\VLSI\\VLSI\\instances\\"
+    out_path = "C:\\Users\\Ale\\PycharmProjects\\VLSI\\VLSI\\CP\\in\\"
     if len(sys.argv) >= 2:
         in_path = sys.argv[1]
     if len(sys.argv) == 3:

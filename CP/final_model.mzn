@@ -1,8 +1,5 @@
-%include "disjunctive.mzn";
 include "diffn.mzn";
 include "cumulative.mzn";
-include "global_cardinality_low_up.mzn";
-include "lex_lesseq.mzn";
 
 %plate width
 int: width;
@@ -21,15 +18,6 @@ array[N_CIRCUITS] of int: DX;
 %height of circuits
 array[N_CIRCUITS] of int: DY;
 
-%array to specify whether a circuit is rotated or not
-array[N_CIRCUITS] of var bool: is_rotated;
-
-%actual horizontal dimension of circuits
-array[N_CIRCUITS] of var int: DX_R = [if is_rotated[i] then DY[i] else DX[i] endif | i in N_CIRCUITS];
-
-%actual vertical dimension of the circuits
-array[N_CIRCUITS] of var int: DY_R = [if is_rotated[i] then DX[i] else DY[i] endif | i in N_CIRCUITS];
-
 %circuits area
 %array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
 
@@ -46,7 +34,7 @@ array[N_CIRCUITS] of var 0..sum(DY)-1: y;
 
 %height of the plate to minimize
 var lower_bound..upper_bound: height;
-height = max([y[i] + DY_R[i] | i in N_CIRCUITS]);
+height = max([y[i] + DY[i] | i in N_CIRCUITS]);
 
 % area of circuits
 array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
@@ -55,28 +43,26 @@ array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
 int: index = arg_max(DY);
 
 %domain reduction
-constraint forall(c in N_CIRCUITS) (x[c]<=width-DX_R[c])::domain;
-constraint forall(c in N_CIRCUITS) (y[c]<=height-DY_R[c])::domain;
+constraint forall(c in N_CIRCUITS) (x[c]<=width-DX[c])::domain;
+constraint forall(c in N_CIRCUITS) (y[c]<=height-DY[c])::domain;
 
 %constraints
 
 %implied constraints
 
 %maximum width
-constraint max([x[i] + DX_R[i] | i in N_CIRCUITS]) <= width;
+constraint max([x[i] + DX[i] | i in N_CIRCUITS]) <= width;
 
 % maximum height (it could be eliminated for construction of height_max if we do not take into account rotation)
-constraint max([y[i] + DY_R[i] | i in N_CIRCUITS]) <= upper_bound;
+constraint max([y[i] + DY[i] | i in N_CIRCUITS]) <= upper_bound;
 
 % relationships among circuits
-constraint diffn(x, y, DX_R, DY_R);
+constraint diffn(x, y, DX, DY);
 
-% a circuit cannot be rotated whether its height is greater than plate width
-constraint forall(i in N_CIRCUITS)(DY[i] > width -> is_rotated[i]==false);
 
 % considering each circuit as an activity whose duration is the height and amount of resources is equal to its width
-constraint cumulative(y, DY_R, DX_R, width);
-constraint cumulative(x, DX_R, DY_R, height);
+constraint cumulative(y, DY, DX, width);
+constraint cumulative(x, DX, DY, height);
 
 % symmetry breaking constraint
 constraint symmetry_breaking_constraint(
@@ -89,8 +75,8 @@ constraint symmetry_breaking_constraint(
 );
         
 % Parameters to control the search heuristic and restart strategy
-int: heuristic = 6;
-int: restart = 4;
+int: heuristic = 1;
+int: restart = 1;
 
 ann: search_ann_x = 
 if heuristic == 1 then
@@ -146,6 +132,6 @@ solve minimize height;
 
 output ["\(width) \(height)\n\(n)\n"]
        %++ ["Plate height: \(height)\n"]
-       ++ ["\(DX_R[i]) \(DY_R[i]) \(x[i]) \(y[i])"
+       ++ ["\(DX[i]) \(DY[i]) \(x[i]) \(y[i])"
        ++ "\n"
       | i in 1..n];

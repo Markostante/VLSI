@@ -12,17 +12,19 @@ def read_instance(f):
         DY.append(int(split_piece[1]))
     return width, n_pieces, DX, DY
 
+
 def write_instance(width, n_pieces, DX, DY, out_path="./file.dzn"):
     file = open(out_path, mode="w")
     file.write(f"width = {width};\n")
-    height_max = compute_height_max(DX, DY, width)
-    file.write(f"height_max = {height_max};\n")
+    # height_max = compute_height_max(DX, DY, width)
+    # file.write(f"height_max = {height_max};\n")
     file.write(f"n = {n_pieces};\n")
     file.write(f"DX = {DX};\n")
     file.write(f"DY = {DY};")
     file.close()
-    
-def compute_height_max(x,y,w):
+
+
+def compute_height_max(x, y, w):
     l_max = sum(y)
     max_x = max(x)
     max_y = max(y)
