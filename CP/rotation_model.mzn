@@ -1,97 +1,98 @@
 include "diffn.mzn";
 include "cumulative.mzn";
 
-%plate width
+% ==== Input variables ==== 
+
+% Plate width
 int: width;
 
-%plate maximum dimensions
-int: upper_bound = sum([max(DY[i], DX[i]) | i in N_CIRCUITS]);
-int: lower_bound = max(DY ++ DX);
-
-%circuits
+% Number of total circuits to place
 int: n;
 set of int: N_CIRCUITS = 1..n;
 
-%width of circuits
+% Width of circuits
 array[N_CIRCUITS] of int: DX;
 
-%height of circuits
+% Height of circuits
 array[N_CIRCUITS] of int: DY;
 
-%array to specify whether a circuit is rotated or not
+% ==== Support variables ==== 
+
+% Plate bounds
+int: upper_bound = sum([max(DY[i], DX[i]) | i in N_CIRCUITS]);
+int: lower_bound = max(DY ++ DX);
+
+% Array to specify whether a circuit is rotated or not
 array[N_CIRCUITS] of var bool: is_rotated;
 
-%actual horizontal dimension of circuits
+% Actual horizontal dimension of circuits
 array[N_CIRCUITS] of var int: DX_R = [if is_rotated[i] then DY[i] else DX[i] endif | i in N_CIRCUITS];
 
-%actual vertical dimension of the circuits
+% Actual vertical dimension of the circuits
 array[N_CIRCUITS] of var int: DY_R = [if is_rotated[i] then DX[i] else DY[i] endif | i in N_CIRCUITS];
 
-%circuits area
-%array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
+% ==== Output variables ==== 
 
-%circuit with the maximum height
-%int: index_max_height = arg_max(DY);
-
-%variable definition
-
-%horizontal coordinate of circuits
+% Horizontal coordinate of circuits
 array[N_CIRCUITS] of var 0..width-1: x;
 
-%vertical coordinate of circuits
+% Vertical coordinate of circuits
 array[N_CIRCUITS] of var 0..sum(DY)-1: y;
 
-%height of the plate to minimize
+% Height of the plate to minimize
 var lower_bound..upper_bound: height;
 height = max([y[i] + DY_R[i] | i in N_CIRCUITS]);
 
-% area of circuits
-array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
+% ==== Domain reduction ====
 
-% circuit with the maximum height
-int: index = arg_max(DY);
+constraint forall(i in N_CIRCUITS) (x[i]<=width-DX_R[i])::domain;
+constraint forall(i in N_CIRCUITS) (y[i]<=height-DY_R[i])::domain;
 
-%domain reduction
-constraint forall(c in N_CIRCUITS) (x[c]<=width-DX_R[c])::domain;
-constraint forall(c in N_CIRCUITS) (y[c]<=height-DY_R[c])::domain;
+% ==== Main constraints ====
 
-%constraints
-
-%implied constraints
-
-%maximum width
+% Maximum width
 constraint max([x[i] + DX_R[i] | i in N_CIRCUITS]) <= width;
 
-% maximum height (it could be eliminated for construction of height_max if we do not take into account rotation)
+% Maximum height
 constraint max([y[i] + DY_R[i] | i in N_CIRCUITS]) <= upper_bound;
 
-% relationships among circuits
-constraint diffn(x, y, DX_R, DY_R);
-
-% a circuit cannot be rotated whether its height is greater than plate width
+% A circuit cannot be rotated if its height is greater than plate width
 constraint forall(i in N_CIRCUITS)(DY[i] > width -> is_rotated[i]==false);
 
-% considering each circuit as an activity whose duration is the height and amount of resources is equal to its width
+% ==== Global constraints ====
+
+% Each circuit is an activity with duration equal to its height and amount of resource equal to its width
 constraint cumulative(y, DY_R, DX_R, width);
 constraint cumulative(x, DX_R, DY_R, height);
 
-% symmetry breaking constraint
+% Relationships among circuits
+constraint diffn(x, y, DX_R, DY_R);
+
+% ==== Symmetry breaking constraints ====
+
+% Circuits which have dimensions that are the same should not be rotated (forse inutile)
 constraint symmetry_breaking_constraint(
-  x[index] == 0 /\ y[index] == 0
+  forall (i in N_CIRCUITS) (DX[i] = DY[i] -> is_rotated[i] = 0)
 );
 
-% higher density on the left wrt the right
+% The circuit with the maximum height is placed at position (x,y) = (0,0)
+int: index_max_height = arg_max(DY);
+
+constraint symmetry_breaking_constraint(
+  x[index_max_height] == 0 /\ y[index_max_height] == 0
+);
+
+% Higher density of circuits on the left
+array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
+
 constraint symmetry_breaking_constraint(
   sum(i in N_CIRCUITS where x[i] <= width div 2)(area[i]) > sum(i in N_CIRCUITS where x[i] > width div 2)(area[i])
 );
 
-%io aggiungerei anche il seguente constraint preso da Alessandro:
-% Square circuits should not be rotated
-%constraint symmetry_breaking_constraint(
-%  forall (c in circuits) (heights[c] = widths[c] -> r[c] = 0)
-%);
-        
-% Parameters to control the search heuristic and restart strategy
+% ==== Search ====
+
+% Questa parte dobbiamo modificarla ma per il momento la lascio così
+
 int: heuristic = 6;
 int: restart = 4;
 

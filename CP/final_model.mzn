@@ -1,78 +1,83 @@
 include "diffn.mzn";
 include "cumulative.mzn";
 
-%plate width
+% ==== Input variables ==== 
+
+% Plate width
 int: width;
 
-%plate maximum dimensions
-int: upper_bound = sum([max(DY[i], DX[i]) | i in N_CIRCUITS]);
-int: lower_bound = max(DY ++ DX);
-
-%circuits
+% Number of total circuits to place
 int: n;
 set of int: N_CIRCUITS = 1..n;
 
-%width of circuits
+% Width of circuits
 array[N_CIRCUITS] of int: DX;
 
-%height of circuits
+% Height of circuits
 array[N_CIRCUITS] of int: DY;
 
-%circuits area
-%array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
+% ==== Support variables ==== 
 
-%circuit with the maximum height
-%int: index_max_height = arg_max(DY);
+% Plate bounds
+int: lower_bound = max(DY);
+int: upper_bound = sum(DY);
 
-%variable definition
+% ==== Output variables ==== 
 
-%horizontal coordinate of circuits
+% Horizontal coordinate of circuits
 array[N_CIRCUITS] of var 0..width-1: x;
 
-%vertical coordinate of circuits
+% Vertical coordinate of circuits
 array[N_CIRCUITS] of var 0..sum(DY)-1: y;
 
-%height of the plate to minimize
+% Height of the plate to minimize
 var lower_bound..upper_bound: height;
 height = max([y[i] + DY[i] | i in N_CIRCUITS]);
 
-% area of circuits
-array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
+% ==== Domain reduction ====
 
-% circuit with the maximum height
-int: index = arg_max(DY);
+constraint forall(i in N_CIRCUITS) (x[i]<=width-DX[i])::domain;
+constraint forall(i in N_CIRCUITS) (y[i]<=height-DY[i])::domain;
 
-%domain reduction
-constraint forall(c in N_CIRCUITS) (x[c]<=width-DX[c])::domain;
-constraint forall(c in N_CIRCUITS) (y[c]<=height-DY[c])::domain;
+% ==== Main constraints ====
 
-%constraints
+% Forse inutili per come abbiamo costruito il problema e per la riduzione del dominio, ma non dovrebbero creare problemi
 
-%implied constraints
-
-%maximum width
+% Maximum width
 constraint max([x[i] + DX[i] | i in N_CIRCUITS]) <= width;
 
-% maximum height (it could be eliminated for construction of height_max if we do not take into account rotation)
+% Maximum height
 constraint max([y[i] + DY[i] | i in N_CIRCUITS]) <= upper_bound;
 
-% relationships among circuits
-constraint diffn(x, y, DX, DY);
+% ==== Global constraints ==== 
 
-
-% considering each circuit as an activity whose duration is the height and amount of resources is equal to its width
+% Each circuit is an activity with duration equal to its height and amount of resource equal to its width
 constraint cumulative(y, DY, DX, width);
 constraint cumulative(x, DX, DY, height);
 
-% symmetry breaking constraint
+% Relationships among circuits
+constraint diffn(x, y, DX, DY);
+
+% ==== Symmetry breaking constraints ====
+
+% The circuit with the maximum height is placed at position (x,y) = (0,0)
+int: index = arg_max(DY);
+
 constraint symmetry_breaking_constraint(
   x[index] == 0 /\ y[index] == 0
 );
 
-% higher density on the left wrt the right
+% Higher density of circuits on the left
+array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
+
 constraint symmetry_breaking_constraint(
   sum(i in N_CIRCUITS where x[i] <= width div 2)(area[i]) > sum(i in N_CIRCUITS where x[i] > width div 2)(area[i])
 );
+
+% ==== Search ====
+
+% Questa parte dobbiamo modificarla ma per il momento la lascio così
+
         
 % Parameters to control the search heuristic and restart strategy
 int: heuristic = 1;
