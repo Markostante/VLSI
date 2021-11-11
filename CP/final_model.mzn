@@ -1,5 +1,6 @@
 include "diffn.mzn";
 include "cumulative.mzn";
+include "lex_lesseq.mzn";
 
 % ==== Input variables ==== 
 
@@ -18,7 +19,7 @@ array[N_CIRCUITS] of int: DY;
 
 % ==== Support variables ==== 
 
-% Plate bounds
+% Plate boundaries
 int: lower_bound = max(DY);
 int: upper_bound = sum(DY);
 
@@ -60,76 +61,42 @@ constraint diffn(x, y, DX, DY);
 
 % ==== Symmetry breaking constraints ====
 
-% The circuit with the maximum height is placed at position (x,y) = (0,0)
-int: index = arg_max(DY);
+% The biggest circuit is always placed in the bottom left part of the plate + under and on the left wrt the second biggest
+array[N_CIRCUITS] of int : ordered_circuits = sort_by(N_CIRCUITS, [-DY[c]*DX[c] | c in N_CIRCUITS]);
 
 constraint symmetry_breaking_constraint(
-  x[index] == 0 /\ y[index] == 0
-);
+  let {
+    int: c1 = ordered_circuits[n], int: c2 = ordered_circuits[2]
+  } in lex_lesseq([y[c1],x[c1]], [y[c2],x[c2]]) /\ x[c1] * 2 <= width /\ y[c1] * 2 <= height %usiamo lesseq perché tanto c'è diffn che ci dice che le coordinate devono essere differenti + nelle prime istanze capita che una delle due coordinate è uguale tra 2 circuits (nelle soluzioni che vengono fornite dal base model), e quindi less not-equal sarebbe stato un hard constraint -> da scrivere nel report, poi lo cancelliamo da qui
+); 
 
-% Higher density of circuits on the left
-array[N_CIRCUITS] of int: area = [ DX[i] * DY[i] | i in N_CIRCUITS];
-
-constraint symmetry_breaking_constraint(
-  sum(i in N_CIRCUITS where x[i] <= width div 2)(area[i]) > sum(i in N_CIRCUITS where x[i] > width div 2)(area[i])
-);
 
 % ==== Search ====
 
-% Questa parte dobbiamo modificarla ma per il momento la lascio così
+% Search and restart choice variables
+int: SEARCH_TYPE = 2;
+int: RESTART_TYPE = 4;
 
-        
-% Parameters to control the search heuristic and restart strategy
-int: heuristic = 1;
-int: restart = 1;
+% Search type
+ann: search_ann = 
+  if SEARCH_TYPE == 1 then int_search([height], input_order, indomain_min)
+  elseif SEARCH_TYPE == 2 then int_search([height], first_fail, indomain_min)
+  elseif SEARCH_TYPE == 3 then int_search([height], dom_w_deg, indomain_min)
+  elseif SEARCH_TYPE == 4 then int_search([height], input_order, indomain_random)
+  elseif SEARCH_TYPE == 5 then int_search([height], first_fail, indomain_random)
+  else int_search([height], dom_w_deg, indomain_random)
+  endif;
 
-ann: search_ann_x = 
-if heuristic == 1 then
-  int_search(x, input_order, indomain_min)
-elseif heuristic == 2 then
-  int_search(x, first_fail, indomain_min)
-elseif heuristic == 3 then
-  int_search(x, dom_w_deg, indomain_min)
-elseif heuristic == 4 then
-  int_search(x, input_order, indomain_random)
-elseif heuristic == 5 then
-  int_search(x, first_fail, indomain_random)
-else
-  int_search(x, dom_w_deg, indomain_random)
-endif;
-
-ann: search_ann_y = 
-if heuristic == 1 then
-  int_search(y, input_order, indomain_min)
-elseif heuristic == 2 then
-  int_search(y, first_fail, indomain_min)
-elseif heuristic == 3 then
-  int_search(y, dom_w_deg, indomain_min)
-elseif heuristic == 4 then
-  int_search(y, input_order, indomain_random)
-elseif heuristic == 5 then
-  int_search(y, first_fail, indomain_random)
-else
-  int_search(y, dom_w_deg, indomain_random)
-endif;
-
+% Restart type
 ann: restart_ann =
-if restart == 1 then
-  restart_constant(100)
-elseif restart == 2 then
-  restart_linear(100)
-elseif restart == 3 then
-  restart_geometric(1.5,100)
-elseif restart == 4 then
-  restart_luby(100)
-else
-  restart_none
-endif;
+  if RESTART_TYPE == 1 then restart_constant(750)
+  elseif RESTART_TYPE == 2 then restart_linear(20)
+  elseif RESTART_TYPE == 3 then restart_geometric(1.5, 500)
+  else restart_luby(250)
+  endif;
 
-%solve :: search_ann_x
-%      :: search_ann_y
-%      :: restart_ann
-%         minimize height;
+% Solve CP problem
+%solve :: search_ann :: restart_ann minimize height;
 
 
 solve minimize height;
