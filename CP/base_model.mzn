@@ -60,60 +60,30 @@ constraint diffn(x, y, DX, DY);
 
 % ==== Search ====
 
-% Questa parte dobbiamo modificarla ma per il momento la lascio così
+% Search and restart choice variables
+int: SEARCH_TYPE = 2;
+int: RESTART_TYPE = 4;
 
-        
-% Parameters to control the search heuristic and restart strategy
-int: heuristic = 1;
-int: restart = 1;
+% Search type
+ann: search_ann = 
+  if SEARCH_TYPE == 1 then int_search([height], input_order, indomain_min)
+  elseif SEARCH_TYPE == 2 then int_search([height], first_fail, indomain_min)
+  elseif SEARCH_TYPE == 3 then int_search([height], dom_w_deg, indomain_min)
+  elseif SEARCH_TYPE == 4 then int_search([height], input_order, indomain_random)
+  elseif SEARCH_TYPE == 5 then int_search([height], first_fail, indomain_random)
+  else int_search([height], dom_w_deg, indomain_random)
+  endif;
 
-ann: search_ann_x = 
-if heuristic == 1 then
-  int_search(x, input_order, indomain_min)
-elseif heuristic == 2 then
-  int_search(x, first_fail, indomain_min)
-elseif heuristic == 3 then
-  int_search(x, dom_w_deg, indomain_min)
-elseif heuristic == 4 then
-  int_search(x, input_order, indomain_random)
-elseif heuristic == 5 then
-  int_search(x, first_fail, indomain_random)
-else
-  int_search(x, dom_w_deg, indomain_random)
-endif;
-
-ann: search_ann_y = 
-if heuristic == 1 then
-  int_search(y, input_order, indomain_min)
-elseif heuristic == 2 then
-  int_search(y, first_fail, indomain_min)
-elseif heuristic == 3 then
-  int_search(y, dom_w_deg, indomain_min)
-elseif heuristic == 4 then
-  int_search(y, input_order, indomain_random)
-elseif heuristic == 5 then
-  int_search(y, first_fail, indomain_random)
-else
-  int_search(y, dom_w_deg, indomain_random)
-endif;
-
+% Restart type
 ann: restart_ann =
-if restart == 1 then
-  restart_constant(100)
-elseif restart == 2 then
-  restart_linear(100)
-elseif restart == 3 then
-  restart_geometric(1.5,100)
-elseif restart == 4 then
-  restart_luby(100)
-else
-  restart_none
-endif;
+  if RESTART_TYPE == 1 then restart_constant(750)
+  elseif RESTART_TYPE == 2 then restart_linear(20)
+  elseif RESTART_TYPE == 3 then restart_geometric(1.5, 500)
+  else restart_luby(250)
+  endif;
 
-%solve :: search_ann_x
-%      :: search_ann_y
-%      :: restart_ann
-%         minimize height;
+% Solve CP problem
+%solve :: search_ann :: restart_ann minimize height;
 
 
 solve minimize height;
