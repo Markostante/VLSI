@@ -61,16 +61,16 @@ constraint diffn(x, y, DX, DY);
 % ==== Search ====
 
 % Search and restart choice variables
-int: SEARCH_TYPE = 2;
-int: RESTART_TYPE = 4;
+int: SEARCH_TYPE = 1;
+int: RESTART_TYPE = 1;
 
 % Search type
 ann: search_ann = 
   if SEARCH_TYPE == 1 then int_search([height], input_order, indomain_min)
-  elseif SEARCH_TYPE == 2 then int_search([height], first_fail, indomain_min)
-  elseif SEARCH_TYPE == 3 then int_search([height], dom_w_deg, indomain_min)
-  elseif SEARCH_TYPE == 4 then int_search([height], input_order, indomain_random)
-  elseif SEARCH_TYPE == 5 then int_search([height], first_fail, indomain_random)
+  elseif SEARCH_TYPE == 2 then int_search([height], input_order, indomain_random)
+  elseif SEARCH_TYPE == 3 then int_search([height], first_fail, indomain_min)
+  elseif SEARCH_TYPE == 4 then int_search([height], first_fail, indomain_random)
+  elseif SEARCH_TYPE == 5 then int_search([height], dom_w_deg, indomain_min)
   else int_search([height], dom_w_deg, indomain_random)
   endif;
 
@@ -83,10 +83,10 @@ ann: restart_ann =
   endif;
 
 % Solve CP problem
-%solve :: search_ann :: restart_ann minimize height;
+solve :: search_ann :: restart_ann minimize height;
 
 
-solve minimize height;
+%solve minimize height;
 
 
 output ["\(width) \(height)\n\(n)\n"]
