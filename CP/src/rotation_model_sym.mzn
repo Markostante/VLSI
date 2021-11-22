@@ -81,7 +81,7 @@ array[N_CIRCUITS] of int : ordered_circuits = sort_by(N_CIRCUITS, [-DY[c]*DX[c] 
 
 constraint symmetry_breaking_constraint(
   let {
-    int: c1 = ordered_circuits[n], int: c2 = ordered_circuits[2]
+    int: c1 = ordered_circuits[1], int: c2 = ordered_circuits[2]
   } in lex_lesseq([y[c1],x[c1]], [y[c2],x[c2]]) /\ x[c1] * 2 <= width /\ y[c1] * 2 <= height %usiamo lesseq perché tanto c'è diffn che ci dice che le coordinate devono essere differenti + nelle prime istanze capita che una delle due coordinate è uguale tra 2 circuits (nelle soluzioni che vengono fornite dal base model), e quindi less not-equal sarebbe stato un hard constraint -> da scrivere nel report, poi lo cancelliamo da qui
 ); 
 
