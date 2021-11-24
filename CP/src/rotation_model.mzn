@@ -71,8 +71,8 @@ constraint diffn(x, y, DX_R, DY_R);
 % ==== Search ====
 
 % Search and restart choice variables
-int: SEARCH_TYPE = 5;
-int: RESTART_TYPE = 3;
+int: SEARCH_TYPE = 6;
+int: RESTART_TYPE = 4;
 
 % Search type
 ann: search_ann = 

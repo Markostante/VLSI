@@ -41,8 +41,6 @@ constraint forall(i in N_CIRCUITS) (y[i]<=height-DY[i])::domain;
 
 % ==== Main constraints ====
 
-% Forse inutili per come abbiamo costruito il problema e per la riduzione del dominio, ma non dovrebbero creare problemi
-
 % Maximum width
 constraint max([x[i] + DX[i] | i in N_CIRCUITS]) <= width;
 
