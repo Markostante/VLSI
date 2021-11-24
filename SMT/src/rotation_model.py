@@ -1,7 +1,6 @@
 import os
 import numpy as np
 from z3 import *
-from itertools import combinations
 import time
 from glob import glob
 
@@ -110,22 +109,14 @@ def solve_instance(in_file, out_dir):
 
     opt.add(max_width + max_height)
 
-    #symmetry
-    #areas_index = np.argsort([dx_r[i]*dy_r[i] for i in range(n_circuits)])
-    #biggests = areas_index[-1], areas_index[-2]
-
-    #symmetry_biggests = Or(x[biggests[1]] > x[biggests[0]], And(x[biggests[1]] == x[biggests[0]], y[biggests[1]] >= y[biggests[0]]))
-    #symmetry_bottom_left = And(x[biggests[1]] * 2 <= width, y[biggests[1]] * 2 <= height)
-
-    #opt.add(symmetry_biggests)
-    #opt.add(symmetry_bottom_left)
-    
-
     # Maximum time of execution
     opt.set("timeout", 300000)
 
     x_sol = []
     y_sol = []
+
+    dx_sol = []
+    dy_sol = []
 
     # Solve
 
@@ -140,10 +131,12 @@ def solve_instance(in_file, out_dir):
         for i in range(n_circuits):
             x_sol.append(model.evaluate(x[i]).as_string())
             y_sol.append(model.evaluate(y[i]).as_string())
+            dx_sol.append(model.evaluate(dx_r[i]).as_string())
+            dy_sol.append(model.evaluate(dy_r[i]).as_string())
         height_sol = model.evaluate(height).as_string()
 
         # Storing the result
-        write_solution(width, n_circuits, dx_r, dy_r, x_sol, y_sol, height_sol, out_file, elapsed_time)
+        write_solution(width, n_circuits, dx_sol, dy_sol, x_sol, y_sol, height_sol, out_file, elapsed_time)
     
     else:
         elapsed_time = time.time() - start_time
@@ -151,10 +144,10 @@ def solve_instance(in_file, out_dir):
         print("Solution not found")
 
 def main():
-    in_dir = "/Users/Marco/Downloads/VLSI-main-2/instances"
-    for in_file in glob(os.path.join(in_dir, '*.txt')):
-        #in_file = "/Users/Marco/Downloads/VLSI-main-2/instances/ins-12.txt"
-        out_dir = "/Users/Marco/Downloads/VLSI-main-2/SMT/out/rotation"
+    in_dir = "../../instances"
+    out_dir = "../out/rotation_sym"
+    for in_file in glob((os.path.abspath(os.path.join(in_dir, '*.txt')))):
+    #in_file = glob((os.path.abspath(os.path.join(in_dir, 'ins-1.txt'))))[0]
         solve_instance(in_file, out_dir)
     
 

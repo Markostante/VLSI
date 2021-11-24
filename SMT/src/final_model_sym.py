@@ -1,7 +1,6 @@
 import os
 import numpy as np
 from z3 import *
-from itertools import combinations
 import time
 from glob import glob
 
@@ -144,13 +143,12 @@ def solve_instance(in_file, out_dir):
         print("Solution not found")
 
 def main():
-    in_dir = "/Users/Marco/Downloads/VLSI-main-2/instances"
-    for in_file in glob(os.path.join(in_dir, '*.txt')):
-        #in_file = "/Users/Marco/Downloads/VLSI-main-2/instances/ins-12.txt"
-        out_dir = "/Users/Marco/Downloads/VLSI-main-2/SMT/out/final_sym"
+    in_dir = "../../instances"
+    out_dir = "../out/final_sym"
+    for in_file in glob((os.path.abspath(os.path.join(in_dir, '*.txt')))):
+    #in_file = glob((os.path.abspath(os.path.join(in_dir, 'ins-1.txt'))))[0]
         solve_instance(in_file, out_dir)
     
-
 
 if __name__ == '__main__':
     main()
