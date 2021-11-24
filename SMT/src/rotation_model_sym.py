@@ -126,6 +126,9 @@ def solve_instance(in_file, out_dir):
     x_sol = []
     y_sol = []
 
+    dx_sol = []
+    dy_sol = []
+
     # Solve
 
     print(f'{out_file}:', end='\t', flush=True)
@@ -139,6 +142,8 @@ def solve_instance(in_file, out_dir):
         for i in range(n_circuits):
             x_sol.append(model.evaluate(x[i]).as_string())
             y_sol.append(model.evaluate(y[i]).as_string())
+            dx_sol.append(model.evaluate(dx_r[i]).as_string())
+            dy_sol.append(model.evaluate(dy_r[i]).as_string())
         height_sol = model.evaluate(height).as_string()
 
         # Storing the result
