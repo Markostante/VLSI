@@ -6,10 +6,10 @@ Very large-scale integration (VLSI) is the process of creating an integrated cir
 
 ## Requirements
 It is required to install MiniZinc and add the executable to the PATH variable in the enviroment. For the SMT version is required a python installation. The libraries specified with the versions used are the following:
-- minizinc --vers
-- z3-solver --vers
-- matplotlib --vers
-- numpy --vers
+- minizinc --vers 2.5.5
+- z3-solver --vers 4.8.12.0
+- matplotlib --vers 3.4.0
+- numpy --vers 1.19.5
 
 ## Usage
 The CP solver is runned by executing `python solve.py` file in the folder `utilities`. By default all the 40 instances are solved. On the other hand for SMT is possible to run the specific solver by running the appropriate file in the folder `SMT/src`.
