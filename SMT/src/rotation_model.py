@@ -145,7 +145,7 @@ def solve_instance(in_file, out_dir):
 
 def main():
     in_dir = "../../instances"
-    out_dir = "../out/rotation_sym"
+    out_dir = "../out/rotation"
     for in_file in glob((os.path.abspath(os.path.join(in_dir, '*.txt')))):
     #in_file = glob((os.path.abspath(os.path.join(in_dir, 'ins-1.txt'))))[0]
         solve_instance(in_file, out_dir)
