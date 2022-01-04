@@ -4,6 +4,10 @@ This repository contains the project realized for the first module con Combinato
 
 Very large-scale integration (VLSI) is the process of creating an integrated circuit by combining multiple circuits on a single chip. The goal of this project is to design the VLSI of the circuits minimizing the final lenght of the device. We have developed different solutions both in CP and SMT.
 
+This project is realized by:
+* Marco Costante ([Markostante](https://github.com/Markostante)), marco.costante@studio.unibo.it;
+* Alessandra Stramiglio ([alestrami](https://github.com/alestrami)), alessandr.stramiglio@studio.unibo.it.
+
 ## Requirements
 It is required to install MiniZinc and add the executable to the PATH variable in the enviroment. For the SMT version is required a python installation. The libraries specified with the versions used are the following:
 - [MiniZinc](https://www.minizinc.org) 2.5.5;
